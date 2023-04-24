@@ -1,0 +1,66 @@
+#include <iostream>
+#include "omp.h"
+
+using namespace std;
+
+int main() {
+
+	double e = 0.0001;
+	int n,j;
+	cin >> n >> j;
+	int* a = new int[n * n];
+	int* b = new int[n];
+	double* x = new double[n];
+
+	srand(time(NULL));
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			a[i + j * n] = rand() % 49 + 1;
+	for (int i = 0; i < n; i++)
+		b[i] = rand() % 49 + 1;
+	for (int i = 0; i < n; i++)
+		x[i] = b[i] / a[i + i * n];
+	
+
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+			cout << a[i + j * n] << " ";
+		cout << endl;
+	}
+	cout << endl;
+
+	for (int i = 0; i < n; i++)
+		cout << b[i] << " ";
+	cout << endl;
+
+
+	int i;
+	double* xl = new double[n];
+	for (i = 0; i < n; i++)
+		xl[i] = x[i];
+#pragma omp parallel private(i) shared(x,xl,e,n,a,b) num_threads(j)
+	{
+#pragma omp for
+		for (i = 0; i < n; i++) {
+#pragma omp critical
+			{
+				do {
+					x[i] = xl[i];
+					xl[i] = b[i];
+					for (int j = 0; j < n; j++)
+					{
+						if (i == j) continue;
+						xl[i] -= double(a[i * n + j] * x[i]);
+					}
+					xl[i] /= (double)a[i*n+i];
+
+				} while (abs(xl[i] - x[i]) < e);
+			}
+		}
+	}
+	cout << endl << "Num:" << endl;
+	for (i = 0; i < n; i++)
+		cout << xl[i] << endl;
+	return 0;
+}
