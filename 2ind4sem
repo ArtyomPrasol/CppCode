@@ -1,4 +1,4 @@
-#include <stdio.h>
+
 #include "mpi.h"
 #include <stdio.h>
 #include <fstream>
@@ -14,7 +14,8 @@ int main(int argc, char **argv) {
 	ifstream fin;
 
 
-	int rank, numtasks, n = rand() % 19 + 1;
+	int rank, numtasks;
+	const int n = rand() % 19 + 1;
 	srand(time(NULL));
 	string t = "file", tag = ".txt", r = "_res", way = "D:\\Work\\PiN_Kode\\2ind\\x64\\Debug\\";
 	MPI_Status status;
@@ -23,14 +24,14 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	int mas[50];
+	string mas_name[50];
 	if (rank == 0)
 	{
 		for (int i = 0; i < n; i++)
-			mas[i] = i;
+			mas_name[i] = t + to_string(i) + tag;
 		for (int i = 0; i < n; i++)
 		{
-			fout.open(way + t + to_string(i) + tag);
+			fout.open(way + mas_name[i]);
 			for (int i = 0; i < n; i++)
 			{
 				int d = (rand() % 19 + 1)*pow(-1,rand()%2);
@@ -41,13 +42,13 @@ int main(int argc, char **argv) {
 		cout << "Created mas and files" << endl;
 	}
 
-	MPI_Bcast(mas, 50, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(mas_name, sizeof(mas_name), MPI_CHAR, 0, MPI_COMM_WORLD);
 	
 
 	for (int i = rank; i < n; i += numtasks)
 	{
 		int x, p = 1;
-		fin.open(way + t + to_string(i) + tag);
+		fin.open(way + mas_name[i]);
 		while (fin >> x && !fin.eof()) {
 			if (x < 0) p *= x;
 		}
